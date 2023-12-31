@@ -1,32 +1,23 @@
 #!/bin/bash
-# =========================================
-#         _____              _      
-#        |  ___| __ ___  ___| |__   
-#        | |_ | '__/ _ \/ __| '_ \  
-#        |  _|| | |  __/\__ \ | | | 
-#        |_|  |_|  \___||___/_| |_| 
-#                              
-# =========================================
+
+# Mr Kernel - The kernel build script for Mr Kernel
+# The Fresh Project
+# Copyright (C) 2019-2023 TenSeventy7
 #  
-#  Minty - The kernel build script for Mint
-#  The Fresh Project
-#  Copyright (C) 2019-2021 TenSeventy7
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #  
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #  
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
 #  
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#  
-#  =========================
-#
+# ============================================
 
 # Utility directories
 ORIGIN_DIR=$(pwd)
@@ -37,7 +28,7 @@ BUILD_PREF_COMPILER='clang'
 BUILD_PREF_COMPILER_VERSION='proton'
 
 # Local toolchain directory
-TOOLCHAIN=$HOME/toolchains/exynos9610_toolchains_fresh
+TOOLCHAIN=$HOME/toolchains/exynos9610_toolchains_mr_kernel
 
 # External toolchain directory
 TOOLCHAIN_EXT=$(pwd)/toolchain
@@ -46,65 +37,65 @@ DEVICE_DB_DIR="${ORIGIN_DIR}/Documentation/device-db"
 
 export ARCH=arm64
 export SUBARCH=arm64
-export ANDROID_MAJOR_VERSION=r
-export PLATFORM_VERSION=11.0.0
+export ANDROID_MAJOR_VERSION=s
+export PLATFORM_VERSION=14.0.0
 export $ARCH
 
 script_echo() {
-	echo "  $1"
+    echo "  $1"
 }
 
 exit_script() {
-	kill -INT $$
+    kill -INT $$
 }
 
 download_toolchain() {
-	git clone https://gitlab.com/TenSeventy7/exynos9610_toolchains_fresh.git ${TOOLCHAIN_EXT} --single-branch -b ${BUILD_PREF_COMPILER_VERSION} --depth 1 2>&1 | sed 's/^/     /'
-	verify_toolchain
+    git clone https://gitlab.com/TenSeventy7/exynos9610_toolchains_mr_kernel.git ${TOOLCHAIN_EXT} --single-branch -b ${BUILD_PREF_COMPILER_VERSION} --depth 1 2>&1 | sed 's/^/     /'
+    verify_toolchain
 }
 
 verify_toolchain() {
-	sleep 2
-	script_echo " "
+    sleep 2
+    script_echo " "
 
-	if [[ -d "${TOOLCHAIN}" ]]; then
-		script_echo "I: Toolchain found at default location"
-		export PATH="${TOOLCHAIN}/bin:$PATH"
-		export LD_LIBRARY_PATH="${TOOLCHAIN}/lib:$LD_LIBRARY_PATH"
-	elif [[ -d "${TOOLCHAIN_EXT}" ]]; then
+    if [[ -d "${TOOLCHAIN}" ]]; then
+        script_echo "I: Toolchain found at default location"
+        export PATH="${TOOLCHAIN}/bin:$PATH"
+        export LD_LIBRARY_PATH="${TOOLCHAIN}/lib:$LD_LIBRARY_PATH"
+    elif [[ -d "${TOOLCHAIN_EXT}" ]]; then
 
-		script_echo "I: Toolchain found at repository root"
+        script_echo "I: Toolchain found at repository root"
 
-		cd ${TOOLCHAIN_EXT}
-		git pull
-		cd ${ORIGIN_DIR}
+        cd ${TOOLCHAIN_EXT}
+        git pull
+        cd ${ORIGIN_DIR}
 
-		export PATH="${TOOLCHAIN_EXT}/bin:$PATH"
-		export LD_LIBRARY_PATH="${TOOLCHAIN_EXT}/lib:$LD_LIBRARY_PATH"
+        export PATH="${TOOLCHAIN_EXT}/bin:$PATH"
+        export LD_LIBRARY_PATH="${TOOLCHAIN_EXT}/lib:$LD_LIBRARY_PATH"
 
-		if [[ ${BUILD_KERNEL_CI} == 'true' ]]; then
-			if [[ ${BUILD_PREF_COMPILER_VERSION} == 'proton' ]]; then
-				sudo mkdir -p /root/build/install/aarch64-linux-gnu
-				sudo cp -r "${TOOLCHAIN_EXT}/lib" /root/build/install/aarch64-linux-gnu/
+        if [[ ${BUILD_KERNEL_CI} == 'true' ]]; then
+            if [[ ${BUILD_PREF_COMPILER_VERSION} == 'proton' ]]; then
+                sudo mkdir -p /root/build/install/aarch64-linux-gnu
+                sudo cp -r "${TOOLCHAIN_EXT}/lib" /root/build/install/aarch64-linux-gnu/
 
-				sudo chown ${CURRENT_BUILD_USER} /root
-				sudo chown ${CURRENT_BUILD_USER} /root/build
-				sudo chown ${CURRENT_BUILD_USER} /root/build/install
-				sudo chown ${CURRENT_BUILD_USER} /root/build/install/aarch64-linux-gnu
-				sudo chown ${CURRENT_BUILD_USER} /root/build/install/aarch64-linux-gnu/lib
-			fi
-		fi
-	else
-		script_echo "I: Toolchain not found at default location or repository root"
-		script_echo "   Downloading recommended toolchain at ${TOOLCHAIN_EXT}..."
-		download_toolchain
-	fi
+                sudo chown ${CURRENT_BUILD_USER} /root
+                sudo chown ${CURRENT_BUILD_USER} /root/build
+                sudo chown ${CURRENT_BUILD_USER} /root/build/install
+                sudo chown ${CURRENT_BUILD_USER} /root/build/install/aarch64-linux-gnu
+                sudo chown ${CURRENT_BUILD_USER} /root/build/install/aarch64-linux-gnu/lib
+            fi
+        fi
+    else
+        script_echo "I: Toolchain not found at default location or repository root"
+        script_echo "   Downloading recommended toolchain at ${TOOLCHAIN_EXT}..."
+        download_toolchain
+    fi
 
-	# Proton Clang 13
-	# export CLANG_TRIPLE=aarch64-linux-gnu-
-	export CROSS_COMPILE=aarch64-linux-gnu-
-	export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-	export CC=${BUILD_PREF_COMPILER}
+    # Proton Clang 13
+    # export CLANG_TRIPLE=aarch64-linux-gnu-
+    export CROSS_COMPILE=aarch64-linux-gnu-
+    export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+    export CC=${BUILD_PREF_COMPILER}
 }
 
 update_magisk() {
