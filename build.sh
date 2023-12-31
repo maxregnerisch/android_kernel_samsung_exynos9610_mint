@@ -50,7 +50,7 @@ exit_script() {
 }
 
 download_toolchain() {
-    git clone https://gitlab.com/TenSeventy7/exynos9610_toolchains_mr_kernel.git ${TOOLCHAIN_EXT} --single-branch -b ${BUILD_PREF_COMPILER_VERSION} --depth 1 2>&1 | sed 's/^/     /'
+    git clone https://gitlab.com/TenSeventy7/exynos9610_toolchains_fresh.git ${TOOLCHAIN_EXT} --single-branch -b ${BUILD_PREF_COMPILER_VERSION} --depth 1 2>&1 | sed 's/^/     /'
     verify_toolchain
 }
 
