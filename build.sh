@@ -649,3 +649,31 @@ if [[ ! -z ${BUILD_KERNEL_BRANCH} ]]; then
 
 	# Display build completion message
 	build_complete
+
+ # Use no-product Exynos DTB when building AOSP
+if [[ ${BUILD_KERNEL_CODE} == "aosp" ]]; then
+	script_echo "I: Copying no-product DTB file for use with AOSP ROMs."
+	cp -f $(pwd)/arch/arm64/boot/dts/exynos/aosp/exynos9610.dts $(pwd)/arch/arm64/boot/dts/exynos/
+fi
+
+set_android_version
+build_kernel
+
+if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
+	export_image 
+else
+	build_image
+	build_package
+fi
+
+TIME_NOW=$(date +%s)
+BUILD_TIME=$((TIME_NOW-BUILD_DATE))
+BUILD_TIME_STR=$(printf '%02dh:%02dm:%02ds\n' $((BUILD_TIME/3600)) $((BUILD_TIME%3600/60)) $((BUILD_TIME%60)))
+
+script_echo " "
+script_echo "I: Yay! Kernel build is done!"
+script_echo "   Kernel build took ${BUILD_TIME_STR}"
+script_echo "   File can be found at:"
+script_echo "   ${BUILD_KERNEL_OUTPUT}"
+rm -f "${BUILD_CONFIG_DIR}/${BUILD_DEVICE_TMP_CONFIG}"
+sleep 7
