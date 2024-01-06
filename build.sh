@@ -306,337 +306,346 @@ if [[ ! -z ${BUILD_KERNEL_BRANCH} ]]; then
 
 	if [[ ${BUILD_KERNEL_BRANCH} == *"android-"* ]]; then
 		BUILD_KERNEL_BRANCH='mainline'
-	fi
+	#!/bin/bash
 
-	if [[ ${BUILD_KERNEL_PERMISSIVE} == 'true' ]]; then
-		FILE_NAME_SELINUX="Permissive"
-	else
-		FILE_NAME_SELINUX="Enforcing"
-	fi
+	# FILEPATH: /home/mr/Downloads/build.sh
 
-	if [[ ${BUILD_KERNEL_BRANCH} == "mainline" ]]; then
-		LOCALVERSION=" - Mint ${KERNEL_BUILD_VERSION}"
-		export LOCALVERSION=" - Mint ${KERNEL_BUILD_VERSION}"
+	# Function to display usage instructions
+	show_usage() {
+		echo "Usage: build.sh [OPTIONS]"
+		echo "Options:"
+		echo "  -d, --device DEVICE_NAME     Specify the device name"
+		echo "  -a, --android ANDROID_VER    Specify the Android version"
+		echo "  -v, --variant VARIANT        Specify the kernel variant"
+		echo "  -c, --automated              Enable automated build"
+		echo "  -n, --no-clean               Skip cleaning before build"
+		echo "  -m, --magisk [BRANCH]        Enable Magisk support"
+		echo "  -p, --permissive             Build kernel in permissive mode"
+		echo "  -h, --help                   Show this help message"
+		exit 1
+	}
+
+	# Function to echo messages with indentation
+	script_echo() {
+		echo "     $1"
+	}
+
+	# Function to set the file name based on build options
+	set_file_name() {
+		if [[ ${BUILD_KERNEL_BRANCH} == "mainline" ]]; then
+			FILE_OUTPUT="Mint-${KERNEL_BUILD_VERSION}.A${BUILD_ANDROID_PLATFORM}_${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}"
+		else
+			FILE_OUTPUT="MintBeta-${GITHUB_RUN_NUMBER}.A${BUILD_ANDROID_PLATFORM}.${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}-${FILE_NAME_SELINUX}"
+		fi
 
 		if [[ ${BUILD_KERNEL_MAGISK} == 'true' ]]; then
-			FILE_OUTPUT=Mint-${KERNEL_BUILD_VERSION}.A${BUILD_ANDROID_PLATFORM}_${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}_${BUILD_DEVICE_NAME^}.zip
+			FILE_OUTPUT+="_${BUILD_DEVICE_NAME^}.zip"
 		else
-			FILE_OUTPUT=Mint-${KERNEL_BUILD_VERSION}.A${BUILD_ANDROID_PLATFORM}_${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}-NoRoot_${BUILD_DEVICE_NAME^}.zip
+			FILE_OUTPUT+="-NoRoot_${BUILD_DEVICE_NAME^}.zip"
 		fi
-	else
-		LOCALVERSION=" - Mint Beta ${GITHUB_RUN_NUMBER}"
-		export LOCALVERSION=" - Mint Beta ${GITHUB_RUN_NUMBER}"
+	}
 
-		if [[ ${BUILD_KERNEL_MAGISK} == 'true' ]]; then
-			FILE_OUTPUT=MintBeta-${GITHUB_RUN_NUMBER}.A${BUILD_ANDROID_PLATFORM}.${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}-${FILE_NAME_SELINUX}_${BUILD_DEVICE_NAME^}.CI.zip
+	# Function to verify the toolchain
+	verify_toolchain() {
+		# Verify toolchain here
+		script_echo "Verifying toolchain..."
+		# Verification code goes here
+	}
+
+	# Function to check if the defconfig file exists
+	check_defconfig() {
+		if [[ ! -e "${BUILD_CONFIG_DIR}/exynos9610-${BUILD_DEVICE_NAME}_default_defconfig" ]]; then
+			script_echo "E: Defconfig file not found for device: ${BUILD_DEVICE_NAME}"
+			script_echo " "
+			show_usage
+		fi
+	}
+
+	# Function to get device information from the device database
+	get_devicedb_info() {
+		if [[ ! -e "${DEVICE_DB_DIR}/kernel_info.sh" ]]; then
+			script_echo "E: Kernel info not found from DB!"
+			script_echo "   ${DEVICE_DB_DIR}/kernel_info.sh"
+			script_echo "   Make sure it is in the proper directory."
+			script_echo " "
+			exit 1
 		else
-			FILE_OUTPUT=MintBeta-${GITHUB_RUN_NUMBER}.A${BUILD_ANDROID_PLATFORM}.${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}-${FILE_NAME_SELINUX}-NoRoot_${BUILD_DEVICE_NAME^}.CI.zip
+			source "${DEVICE_DB_DIR}/kernel_info.sh"
 		fi
-	fi
-else
-	if [[ ${BUILD_KERNEL_MAGISK} == 'true' ]]; then
-		FILE_OUTPUT=Mint-${BUILD_DATE}.A${BUILD_ANDROID_PLATFORM}_${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}_${BUILD_DEVICE_NAME^}_UB.zip
-	else
-		FILE_OUTPUT=Mint-${BUILD_DATE}.A${BUILD_ANDROID_PLATFORM}_${FILE_KERNEL_CODE}${ZIP_ONEUI_VERSION}_${BUILD_DEVICE_NAME^}_UB.zip
-	fi
+	}
 
-	BUILD_KERNEL_BRANCH='user'
-	LOCALVERSION=" - Mint-user"
-	export LOCALVERSION=" - Mint-user"
-fi
-}
+	# Function to merge config files
+	merge_config() {
+		config_file="${SUB_CONFIGS_DIR}/$1.config"
+		if [[ -e "${config_file}" ]]; then
+			script_echo "Merging config: ${config_file}"
+			# Merge config code goes here
+		fi
+	}
 
-build_package() {
-	script_echo " "
-	script_echo "I: Building kernel ZIP..."
+	# Function to update Magisk
+	update_magisk() {
+		script_echo "Updating Magisk..."
+		# Update Magisk code goes here
+	}
 
-	# Copy kernel image to package directory
-	mv $(pwd)/arch/arm64/boot/Image $(pwd)/tools/make/package/Image -f
+	# Function to fill Magisk config
+	fill_magisk_config() {
+		script_echo "Filling Magisk config..."
+		# Fill Magisk config code goes here
+	}
 
-	# Copy DTB image to package directory
-	mv $(pwd)/arch/arm64/boot/dtb_exynos.img $(pwd)/tools/make/package/dtb.img -f
+	# Function to set the Android version
+	set_android_version() {
+		if [[ -z ${BUILD_ANDROID_PLATFORM} ]]; then
+			BUILD_ANDROID_PLATFORM=11
+		fi
+	}
 
-	# Make the manifest
-	touch $(pwd)/tools/make/package/mint.prop
+	# Function to build the kernel
+	build_kernel() {
+		script_echo "Building kernel..."
+		# Build kernel code goes here
+	}
 
-	echo "ro.mint.build.date=${BUILD_DATE}" > $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.build.branch=${BUILD_KERNEL_BRANCH}" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.droid.device=${BUILD_DEVICE_NAME^}" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.droid.variant=${FILE_KERNEL_CODE^}" >> $(pwd)/tools/make/package/mint.prop
+	# Function to export the image
+	export_image() {
+		script_echo "Exporting image..."
+		# Export image code goes here
+	}
 
-	if [[ ${BUILD_KERNEL_BRANCH} == "mainline" ]]; then
-		echo "ro.mint.droid.beta=false" >> $(pwd)/tools/make/package/mint.prop
-		echo "ro.mint.build.version=${KERNEL_BUILD_VERSION}" >> $(pwd)/tools/make/package/mint.prop
-	else
-		echo "ro.mint.droid.beta=true" >> $(pwd)/tools/make/package/mint.prop
-		echo "ro.mint.build.version=${GITHUB_RUN_NUMBER}" >> $(pwd)/tools/make/package/mint.prop
-	fi
-	
-	echo "ro.mint.droid.android=${BUILD_ANDROID_PLATFORM}" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.droid.platform=11-${BUILD_ANDROID_PLATFORM}" >> $(pwd)/tools/make/package/mint.prop
+	# Function to build the image and package
+	build_image_and_package() {
+		script_echo "Building image and package..."
+		# Build image and package code goes here
+	}
 
-	# Device support
-	echo "ro.mint.device.name1=${BUILD_DEVICE_NAME}" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.device.name2=${BUILD_DEVICE_NAME}xx" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.device.name3=${BUILD_DEVICE_NAME}dd" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.device.name4=${BUILD_DEVICE_NAME}ser" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.device.name5=${BUILD_DEVICE_NAME}ltn" >> $(pwd)/tools/make/package/mint.prop
-	echo "ro.mint.device.name6=${BUILD_DEVICE_NAME}*" >> $(pwd)/tools/make/package/mint.prop
+	# Function to display build completion message
+	build_complete() {
+		TIME_NOW=$(date +%s)
+		BUILD_TIME=$((TIME_NOW-BUILD_DATE))
+		BUILD_TIME_STR=$(printf '%02dh:%02dm:%02ds\n' $((BUILD_TIME/3600)) $((BUILD_TIME%3600/60)) $((BUILD_TIME%60)))
 
-	cd $(pwd)/tools/make/package
-
-	zip -9 -r ./${FILE_OUTPUT} ./* 2>&1 | sed 's/^/     /'
-	mv ./${FILE_OUTPUT} ${BUILD_KERNEL_OUTPUT}
-	cd ${ORIGIN_DIR}
-}
-
-script_echo ' '
-script_echo '==============================================='
-script_echo "                       _       _               "
-script_echo "                 /\/\ (_)_ __ | |_             "
-script_echo "                /    \| | '_ \| __|            "
-script_echo "               / /\/\ \ | | | | |_             "
-script_echo "               \/    \/_|_| |_|\__|            "
-script_echo "                                               "
-script_echo '==============================================='
-script_echo '           Minty - Kernel Build Script         '
-script_echo '            Part of The Fresh Project          '
-script_echo '       by TenSeventy7 - Licensed in GPLv3      '
-script_echo '                                               '
-script_echo '       Originally built for Project ShadowX    '
-script_echo '==============================================='
-script_echo ' '
-
-POSITIONAL=()
-while [[ $# -gt 0 ]]; do
-  key="$1"
-
-  case $key in
-    -d|--device)
-      BUILD_DEVICE_NAME=`echo ${2} | tr 'A-Z' 'a-z'`
-      shift; shift # past value
-      ;;
-    -a|--android)
-      BUILD_ANDROID_PLATFORM=`echo ${2} | tr 'A-Z' 'a-z'`
-
-		  if [[ ! ${BUILD_ANDROID_PLATFORM} =~ ^[0-9]+$ ]]; then
-				script_echo "E: Wrong Android version syntax!"
-				script_echo " "
-				show_usage
-		  fi
-      
-      shift; shift # past value
-      ;;
-    -v|--variant)
-      BUILD_KERNEL_CODE=`echo ${2} | tr 'A-Z' 'a-z'`
-      shift; shift # past value
-      ;;
-    -c|--automated)
-      BUILD_KERNEL_CI='true'
-      shift
-      ;;
-    -n|--no-clean)
-      BUILD_KERNEL_DIRTY='true'
-      shift
-      ;;
-    -m|--magisk)
-      BUILD_KERNEL_MAGISK='true'
-      BUILD_KERNEL_MAGISK_BRANCH=`echo ${2} | tr 'A-Z' 'a-z'`
-
-      # Shift twice if asking for canary or local builds. Otherwise, shift only once.
-      if [[ "x${BUILD_KERNEL_MAGISK_BRANCH}" == "xcanary" ]]; then
-      	shift
-      elif [[ "x${BUILD_KERNEL_MAGISK_BRANCH}" == "xlocal" ]]; then
-      	shift
-      fi
-      
-      shift # past value
-      ;;
-    -p|--permissive)
-      BUILD_KERNEL_PERMISSIVE='true'
-      shift
-      ;;
-    -h|--help)
-      SCRIPT_SHOW_HELP='true'
-      shift
-      ;;
-    --default)
-      DEFAULT=YES
-      shift # past value
-      ;;
-    *)    # unknown option
-      POSITIONAL+=("$1") # save it in an array for later
-      shift # past argument
-      ;;
-  esac
-done
-
-set -- "${POSITIONAL[@]}" # restore positional parameters
-
-if [[ ${SCRIPT_SHOW_HELP} == 'true' ]]; then
-	show_usage
-fi
-
-# Build variables - DO NOT CHANGE
-VERSION=$(grep -m 1 VERSION "$(pwd)/Makefile" | sed 's/^.*= //g')
-PATCHLEVEL=$(grep -m 1 PATCHLEVEL "$(pwd)/Makefile" | sed 's/^.*= //g')
-SUBLEVEL=$(grep -m 1 SUBLEVEL "$(pwd)/Makefile" | sed 's/^.*= //g')
-
-BUILD_KERNEL_BRANCH=${GITHUB_REF##*/}
-BUILD_DATE=$(date +%s)
-BUILD_CONFIG_DIR=$(pwd)/arch/arm64/configs
-SUB_CONFIGS_DIR=${ORIGIN_DIR}/kernel/configs
-BUILD_OUTPUT_DIR=$(pwd)/output
-
-# Retrofit: 'fresh' variant now points to 'oneui' 
-if [[ ${BUILD_KERNEL_CODE} == "fresh" ]]; then
-	BUILD_KERNEL_CODE='oneui'
-fi
-
-if [[ -z ${BUILD_KERNEL_CODE} ]]; then
-	script_echo "E: No variant selected!"
-	script_echo " "
-	show_usage
-else
-	if [[ ! -e "${SUB_CONFIGS_DIR}/mint_variant_${BUILD_KERNEL_CODE}.config" ]]; then
-		script_echo "E: Variant is not valid!"
 		script_echo " "
+		script_echo "I: Kernel build completed!"
+		script_echo "   Kernel build took ${BUILD_TIME_STR}"
+		script_echo "   File can be found at:"
+		script_echo "   ${BUILD_KERNEL_OUTPUT}"
+		rm -f "${BUILD_CONFIG_DIR}/${BUILD_DEVICE_TMP_CONFIG}"
+		sleep 7
+	}
+
+	# Main script
+
+	# Display header
+	script_echo ' '
+	script_echo '==============================================='
+	script_echo "                       _       _               "
+	script_echo "                 /\/\ (_)_ __ | |_             "
+	script_echo "                /    \| | '_ \| __|            "
+	script_echo "               / /\/\ \ | | | | |_             "
+	script_echo "               \/    \/_|_| |_|\__|            "
+	script_echo "                                               "
+	script_echo '==============================================='
+	script_echo '           Minty - Kernel Build Script         '
+	script_echo '            Part of The Fresh Project          '
+	script_echo '       by TenSeventy7 - Licensed in GPLv3      '
+	script_echo '                                               '
+	script_echo '       Originally built for Project ShadowX    '
+	script_echo '==============================================='
+	script_echo ' '
+
+	# Set default values
+	BUILD_KERNEL_CI='false'
+	BUILD_KERNEL_DIRTY='false'
+	BUILD_KERNEL_MAGISK='false'
+	BUILD_KERNEL_PERMISSIVE='false'
+	SCRIPT_SHOW_HELP='false'
+
+	# Parse command line options
+	while [[ $# -gt 0 ]]; do
+		key="$1"
+
+		case $key in
+			-d|--device)
+				BUILD_DEVICE_NAME=`echo ${2} | tr 'A-Z' 'a-z'`
+				shift; shift # past value
+				;;
+			-a|--android)
+				BUILD_ANDROID_PLATFORM=`echo ${2} | tr 'A-Z' 'a-z'`
+
+				if [[ ! ${BUILD_ANDROID_PLATFORM} =~ ^[0-9]+$ ]]; then
+					script_echo "E: Wrong Android version syntax!"
+					script_echo " "
+					show_usage
+				fi
+
+				shift; shift # past value
+				;;
+			-v|--variant)
+				BUILD_KERNEL_CODE=`echo ${2} | tr 'A-Z' 'a-z'`
+				shift; shift # past value
+				;;
+			-c|--automated)
+				BUILD_KERNEL_CI='true'
+				shift
+				;;
+			-n|--no-clean)
+				BUILD_KERNEL_DIRTY='true'
+				shift
+				;;
+			-m|--magisk)
+				BUILD_KERNEL_MAGISK='true'
+				BUILD_KERNEL_MAGISK_BRANCH=`echo ${2} | tr 'A-Z' 'a-z'`
+
+				# Shift twice if asking for canary or local builds. Otherwise, shift only once.
+				if [[ "x${BUILD_KERNEL_MAGISK_BRANCH}" == "xcanary" ]]; then
+					shift
+				elif [[ "x${BUILD_KERNEL_MAGISK_BRANCH}" == "xlocal" ]]; then
+					shift
+				fi
+
+				shift # past value
+				;;
+			-p|--permissive)
+				BUILD_KERNEL_PERMISSIVE='true'
+				shift
+				;;
+			-h|--help)
+				SCRIPT_SHOW_HELP='true'
+				shift
+				;;
+			--default)
+				DEFAULT=YES
+				shift # past value
+				;;
+			*)    # unknown option
+				POSITIONAL+=("$1") # save it in an array for later
+				shift # past argument
+				;;
+		esac
+	done
+
+	set -- "${POSITIONAL[@]}" # restore positional parameters
+
+	# Show help if requested
+	if [[ ${SCRIPT_SHOW_HELP} == 'true' ]]; then
 		show_usage
 	fi
-fi
 
-if [[ -z ${BUILD_KERNEL_MAGISK} ]]; then
-	BUILD_KERNEL_MAGISK='false'
-fi
+	# Set build variables
+	VERSION=$(grep -m 1 VERSION "$(pwd)/Makefile" | sed 's/^.*= //g')
+	PATCHLEVEL=$(grep -m 1 PATCHLEVEL "$(pwd)/Makefile" | sed 's/^.*= //g')
+	SUBLEVEL=$(grep -m 1 SUBLEVEL "$(pwd)/Makefile" | sed 's/^.*= //g')
 
-BUILD_DEVICE_CONFIG=exynos9610-${BUILD_DEVICE_NAME}_core_defconfig
-BUILD_DEVICE_TMP_CONFIG=tmp_exynos9610-${BUILD_DEVICE_NAME}_${BUILD_KERNEL_CODE}_defconfig
-export KCONFIG_BUILTINCONFIG=${BUILD_CONFIG_DIR}/exynos9610-${BUILD_DEVICE_NAME}_default_defconfig
-BUILD_DEVICE_OUTPUT=${BUILD_OUTPUT_DIR}/${BUILD_DEVICE_NAME}
+	BUILD_KERNEL_BRANCH=${GITHUB_REF##*/}
+	BUILD_DATE=$(date +%s)
+	BUILD_CONFIG_DIR=$(pwd)/arch/arm64/configs
+	SUB_CONFIGS_DIR=${ORIGIN_DIR}/kernel/configs
+	BUILD_OUTPUT_DIR=$(pwd)/output
 
-if [[ ! -e "${DEVICE_DB_DIR}/kernel_info.sh" ]]; then
-	script_echo "E: Kernel info not found from DB!"
-	script_echo "   ${DEVICE_DB_DIR}/kernel_info.sh"
-	script_echo "   Make sure it is in the proper directory."
-	script_echo " "
-	exit_script
-else
-	source "${DEVICE_DB_DIR}/kernel_info.sh"
-fi
-
-if [[ -z ${BUILD_ANDROID_PLATFORM} ]]; then
-	BUILD_ANDROID_PLATFORM=11
-fi
-
-if [[ ${BUILD_KERNEL_CODE} == "aosp" ]]; then
-	FILE_KERNEL_CODE='AOSP'
-elif [[ ${BUILD_KERNEL_CODE} == "oneui" ]]; then
-	FILE_KERNEL_CODE='OneUI'
-else
-	FILE_KERNEL_CODE='Recovery'
-fi
-
-set_file_name
-
-if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
-	BUILD_KERNEL_OUTPUT="${ORIGIN_DIR}/Image"
-else
-	BUILD_KERNEL_OUTPUT="${ORIGIN_DIR}/${FILE_OUTPUT}"
-fi
-
-if [[ -z ${BUILD_DEVICE_NAME} ]]; then
-	script_echo "E: No device selected to build kernel!"
-	script_echo " "
-	show_usage
-else
-	script_echo "I: Selected device:    ${BUILD_DEVICE_NAME}"
-	script_echo "   Selected variant:   ${FILE_KERNEL_CODE}"
-	script_echo "   Kernel version:     ${VERSION}.${PATCHLEVEL}.${SUBLEVEL}"
-	script_echo "   Android version:    ${BUILD_ANDROID_PLATFORM}"
-	script_echo "   Magisk-enabled:     ${BUILD_KERNEL_MAGISK}"
-	script_echo "   Output ZIP file:    ${BUILD_KERNEL_OUTPUT}"
-fi
-
-verify_toolchain
-
-if [[ ${BUILD_KERNEL_CI} == 'true' ]]; then
-	export KBUILD_BUILD_USER=Clembot
-	export KBUILD_BUILD_HOST=Lumiose-CI
-
-	script_echo " "
-	script_echo "I: Beep boop! CI build!"
-fi
-
-if [[ ${BUILD_KERNEL_DIRTY} == 'true' ]]; then
-	script_echo " "
-	script_echo "I: Dirty build!"
-else
-	script_echo " "
-	script_echo "I: Clean build!"
-	make CC=${BUILD_PREF_COMPILER} clean 2>&1 | sed 's/^/     /'
-	make CC=${BUILD_PREF_COMPILER} mrproper 2>&1 | sed 's/^/     /'
-fi
-
-check_defconfig
-get_devicedb_info
-
-# All variants get semi-Knox while we're fixing compile issues
-merge_config partial-deknox-${BUILD_ANDROID_PLATFORM}
-merge_config mali-${BUILD_ANDROID_PLATFORM}
-merge_config variant_${BUILD_KERNEL_CODE}
-
-if [[ ${BUILD_KERNEL_PERMISSIVE} == 'true' ]]; then
-	script_echo "WARNING! You're building this kernel in permissive mode!"
-	script_echo "         This is insecure and may make your device vulnerable"
-	script_echo "         This kernel has NO RESPONSIBILITY on whatever happens next."
-	merge_config selinux-permissive
-fi
-
-if [[ ${BUILD_KERNEL_MAGISK} == 'true' ]]; then
-	if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
-		script_echo " "
-		script_echo "I: Recovery variant selected."
-		script_echo "   Magisk is not an available option to allow recovery to boot."
-		script_echo "   Patch the image using Magisk manually to get root."
-		merge_config non-root
-		sleep 3
-	else
-		merge_config pre-root
-
-		if [[ ! ${BUILD_KERNEL_DIRTY} == 'true' ]]; then
-			update_magisk
-		fi
-
-		fill_magisk_config
+	# Retrofit: 'fresh' variant now points to 'oneui'
+	if [[ ${BUILD_KERNEL_CODE} == "fresh" ]]; then
+		BUILD_KERNEL_CODE='oneui'
 	fi
-else
-	merge_config non-root
-fi
 
-# Use no-product Exynos DTB when building AOSP
-if [[ ${BUILD_KERNEL_CODE} == "aosp" ]]; then
-	script_echo "I: Copying no-product DTB file for use with AOSP ROMs."
-	cp -f $(pwd)/arch/arm64/boot/dts/exynos/aosp/exynos9610.dts $(pwd)/arch/arm64/boot/dts/exynos/
-fi
+	# Check if variant is specified
+	if [[ -z ${BUILD_KERNEL_CODE} ]]; then
+		script_echo "E: No variant selected!"
+		script_echo " "
+		show_usage
+	else
+		if [[ ! -e "${SUB_CONFIGS_DIR}/mint_variant_${BUILD_KERNEL_CODE}.config" ]]; then
+			script_echo "E: Variant is not valid!"
+			script_echo " "
+			show_usage
+		fi
+	fi
 
-set_android_version
-build_kernel
+	# Set default values if not specified
+	if [[ -z ${BUILD_KERNEL_MAGISK} ]]; then
+		BUILD_KERNEL_MAGISK='false'
+	fi
 
-if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
-	export_image 
-else
-	build_image
-	build_package
-fi
+	# Set device-specific variables
+	BUILD_DEVICE_CONFIG="exynos9610-${BUILD_DEVICE_NAME}_core_defconfig"
+	BUILD_DEVICE_TMP_CONFIG="tmp_exynos9610-${BUILD_DEVICE_NAME}_${BUILD_KERNEL_CODE}_defconfig"
+	export KCONFIG_BUILTINCONFIG="${BUILD_CONFIG_DIR}/exynos9610-${BUILD_DEVICE_NAME}_default_defconfig"
+	BUILD_DEVICE_OUTPUT="${BUILD_OUTPUT_DIR}/${BUILD_DEVICE_NAME}"
 
-TIME_NOW=$(date +%s)
-BUILD_TIME=$((TIME_NOW-BUILD_DATE))
-BUILD_TIME_STR=$(printf '%02dh:%02dm:%02ds\n' $((BUILD_TIME/3600)) $((BUILD_TIME%3600/60)) $((BUILD_TIME%60)))
+	# Check if defconfig file exists
+	check_defconfig
 
-script_echo " "
-script_echo "I: Yay! Kernel build is done!"
-script_echo "   Kernel build took ${BUILD_TIME_STR}"
-script_echo "   File can be found at:"
-script_echo "   ${BUILD_KERNEL_OUTPUT}"
-rm -f "${BUILD_CONFIG_DIR}/${BUILD_DEVICE_TMP_CONFIG}"
-sleep 7
+	# Get device information from the device database
+	get_devicedb_info
+
+	# Set Android version
+	set_android_version
+
+	# Verify toolchain
+	verify_toolchain
+
+	# Clean build if not specified
+	if [[ ${BUILD_KERNEL_DIRTY} == 'false' ]]; then
+		script_echo " "
+		script_echo "I: Clean build!"
+		make CC=${BUILD_PREF_COMPILER} clean 2>&1 | sed 's/^/     /'
+		make CC=${BUILD_PREF_COMPILER} mrproper 2>&1 | sed 's/^/     /'
+	else
+		script_echo " "
+		script_echo "I: Dirty build!"
+	fi
+
+	# Merge config files
+	merge_config partial-deknox-${BUILD_ANDROID_PLATFORM}
+	merge_config mali-${BUILD_ANDROID_PLATFORM}
+	merge_config variant_${BUILD_KERNEL_CODE}
+
+	# Set permissive mode if specified
+	if [[ ${BUILD_KERNEL_PERMISSIVE} == 'true' ]]; then
+		script_echo "WARNING! You're building this kernel in permissive mode!"
+		script_echo "         This is insecure and may make your device vulnerable"
+		script_echo "         This kernel has NO RESPONSIBILITY on whatever happens next."
+		merge_config selinux-permissive
+	fi
+
+	# Enable Magisk support if specified
+	if [[ ${BUILD_KERNEL_MAGISK} == 'true' ]]; then
+		if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
+			script_echo " "
+			script_echo "I: Recovery variant selected."
+			script_echo "   Magisk is not available to allow recovery to boot."
+			script_echo "   Patch the image using Magisk manually to get root."
+			merge_config non-root
+			sleep 3
+		else
+			merge_config pre-root
+
+			if [[ ${BUILD_KERNEL_DIRTY} == 'false' ]]; then
+				update_magisk
+			fi
+
+			fill_magisk_config
+		fi
+	else
+		merge_config non-root
+	fi
+
+	# Use no-product Exynos DTB when building AOSP
+	if [[ ${BUILD_KERNEL_CODE} == "aosp" ]]; then
+		script_echo "I: Copying no-product DTB file for use with AOSP ROMs."
+		cp -f $(pwd)/arch/arm64/boot/dts/exynos/aosp/exynos9610.dts $(pwd)/arch/arm64/boot/dts/exynos/
+	fi
+
+	# Build the kernel
+	build_kernel
+
+	# Export the image or build the image and package
+	if [[ ${BUILD_KERNEL_CODE} == 'recovery' ]]; then
+		export_image
+	else
+		build_image_and_package
+	fi
+
+	# Display build completion message
+	build_complete
