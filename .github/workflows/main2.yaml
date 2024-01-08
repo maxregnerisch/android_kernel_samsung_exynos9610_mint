@@ -21,7 +21,7 @@ jobs:
       - name: Upstream Kernel
         run: |
           git remote add upstream https://github.com/torvalds/linux.git
-          git fetch upstream
+          git fetch upstream --tags
           git checkout -b upstream-5.4 upstream/v5.4
           git merge --no-commit --no-ff main
           # Resolve any conflicts and make necessary changes
