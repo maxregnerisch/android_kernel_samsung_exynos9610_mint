@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   upstream_kernel:
@@ -22,12 +21,12 @@ jobs:
       - name: Upstream Kernel
         run: |
           git remote add upstream https://github.com/torvalds/linux.git
-          git fetch upstream
-          git checkout -b upstream-5.4 upstream/v5.4
+          git fetch upstream --tags
+          git checkout -b upstream-5.15 upstream/v5.15
           git merge --no-commit --no-ff main
           # Resolve any conflicts and make necessary changes
-          git commit -m "Upstream kernel from 4.14.194 to 5.4"
-          git push origin upstream-5.4
+          git commit -m "Upstream kernel from 4.14.194 to 5.15"
+          git push origin upstream-5.15
 
       - name: Update Base Repository
         run: |
